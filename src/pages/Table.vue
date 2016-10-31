@@ -1,103 +1,164 @@
 <template lang="html">
-  <div class="table-page">
+  <div class="chart-page">
     <ant-form horizontal>
-      <ant-form-item label="Date" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
-        <datepicker format="YYYY-M-D" :value.sync="date"></datepicker>
-      </ant-form-item>
-      <ant-form-item label="Average" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
-        <p>{{average}}</p>
-      </ant-form-item>
-      <ant-form-item label="Best" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
-        <p>{{best}}</p>
-      </ant-form-item>
-      <ant-form-item label="Worst" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
-        <p>{{worst}}</p>
+      <ant-form-item label="月份选择" :label-col="{ span: 6 }" :wrapper-col="{ span: 14 }">
+        <multi-select label="label" :options="monthList" :selected.sync="selectedMonth"></multi-select>
       </ant-form-item>
     </ant-form>
-    <ant-table class="table" :columns="columns" :data-source="data" :pagination="false"></ant-table>
+    <chart :options="lines" style="width: 100%;"></chart>
   </div>
 </template>
 
 <script>
-import datepicker from 'vue-date-picker'
+import ECharts from 'vue-echarts/src/components/ECharts.vue'
+import MultiSelect from 'components/Select'
 import Mock from 'mockjs'
+import { range } from 'lodash'
 
-const columns = [{
-  title: '用户标识',
-  dataIndex: 'id'
-}, {
-  title: '今日步数',
-  dataIndex: 'step'
-}]
+const monthList = [
+  {
+    label: '2016年 11月',
+    year: 2016,
+    month: 11
+  },
+  {
+    label: '2016年 10月',
+    year: 2016,
+    month: 10
+  },
+  {
+    label: '2016年 9月',
+    year: 2016,
+    month: 9
+  },
+  {
+    label: '2016年 8月',
+    year: 2016,
+    month: 8
+  },
+  {
+    label: '2016年 7月',
+    year: 2016,
+    month: 7
+  },
+  {
+    label: '2016年 6月',
+    year: 2016,
+    month: 6
+  },
+  {
+    label: '2016年 5月',
+    year: 2016,
+    month: 5
+  },
+  {
+    label: '2016年 4月',
+    year: 2016,
+    month: 4
+  },
+  {
+    label: '2016年 3月',
+    year: 2016,
+    month: 3
+  },
+  {
+    label: '2016年 2月',
+    year: 2016,
+    month: 2
+  },
+  {
+    label: '2016年 1月',
+    year: 2016,
+    month: 1
+  }
+]
+
+function getDaysInOneMonth (year, month) {
+  const now = new Date()
+  if (now.getFullYear() === year && (now.getMonth() + 1) === month) return now.getDate()
+  month = parseInt(month, 10)
+  var d = new Date(year, month, 0)
+  return d.getDate()
+}
 
 export default {
   components: {
-    datepicker
+    chart: ECharts,
+    MultiSelect
   },
   data () {
-    var self = this
     return {
-      date: self.format(new Date() + 0, 'yyyy-M-d'),
-      data: [],
-      columns
-    }
-  },
-  computed: {
-    steps () {
-      return this.data.map(item => item.step)
-    },
-    best () {
-      return Math.max.apply(null, this.steps)
-    },
-    average () {
-      if (!this.steps.length) return false
-      return parseInt(this.steps.reduce((x, y) => x + y) / this.steps.length)
-    },
-    worst () {
-      return Math.min.apply(null, this.steps)
+      selectedMonth: monthList[0],
+      monthList,
+      lines: {
+        title: {
+          text: 'Graph'
+        },
+        tooltip: {
+          trigger: 'axis'
+        },
+        legend: {
+          data: ['Best', 'Average', 'worst']
+        },
+        toolbox: {
+          feature: {
+            saveAsImage: {}
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: [{
+          type: 'category',
+          boundaryGap: false,
+          data: []
+        }],
+        yAxis: [{
+          type: 'value'
+        }],
+        series: []
+      }
     }
   },
   watch: {
-    date () {
-      this.randomData()
-    }
-  },
-  ready () {
-    this.randomData()
-  },
-  methods: {
-    randomData () {
-      this.data = Mock.mock({
-        'list|20-100': [{
-          'id': /\d{32}/,
-          'step|500-10000': 1
+    selectedMonth (value) {
+      const dayCount = getDaysInOneMonth(value.year, value.month)
+      const list = Mock.mock({
+        [`data|${dayCount}`]: [{
+          [`list|${dayCount}`]: ['@integer(200, 5000)']
         }]
-      }).list
-    },
-    format (timestamp, fmt) {
-      var usedDate = new Date(timestamp)
-      var o = {
-        'M+': usedDate.getMonth() + 1, // 月份
-        'd+': usedDate.getDate(), // 日
-        'h+': usedDate.getHours(), // 小时
-        'm+': usedDate.getMinutes(), // 分
-        's+': usedDate.getSeconds(), // 秒
-        'q+': Math.floor((usedDate.getMonth() + 3) / 3), // 季度
-        'S': usedDate.getMilliseconds() // 毫秒
-      }
-      if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (usedDate.getFullYear() + '').substr(4 - RegExp.$1.length))
-      for (var k in o) {
-        if (new RegExp('(' + k + ')').test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (('00' + o[k]).substr(('' + o[k]).length)))
-      }
-      return fmt
+      })
+
+      this.lines.xAxis = [{
+        type: 'category',
+        boundaryGap: false,
+        data: range(1, dayCount + 1, 1).map(item => `${value.month}月${item}日`)
+      }]
+      this.lines.series = [{
+        name: 'Best',
+        type: 'line',
+        data: list.data.map(item => Math.max.apply(null, item.list))
+      }, {
+        name: 'Average',
+        type: 'line',
+        data: list.data.map(item => parseInt(item.list.reduce((x, y) => x + y) / item.list.length))
+      }, {
+        name: 'worst',
+        type: 'line',
+        data: list.data.map(item => Math.min.apply(null, item.list))
+      }]
     }
   }
 }
 </script>
 
 <style>
-.table-page {
+.chart-page {
   margin: 0 auto;
+  padding-top: 30px;
   width: 800px;
 }
 </style>

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # xiaomi-demo
 
 > A Vue.js project
@@ -29,4 +28,3 @@ For detailed explanation on how things work, checkout the [guide](http://vuejs-t
 =======
 # mi-demo
 小米项目试水demo
->>>>>>> d7faa54643b76e10123fd2586e34a51cbe2e6d97

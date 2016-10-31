@@ -11,10 +11,12 @@
     class="multiselect">
       <div @mousedown.prevent="toggle()" class="multiselect__select"></div>
       <div v-el:tags="v-el:tags" class="multiselect__tags">
-        <span v-if="multiple" v-for="option in visibleValue" track-by="$index" onmousedown="event.preventDefault()" class="multiselect__tag">
-          {{ getOptionLabel(option) }}
-          <i aria-hidden="true" tabindex="1" @keydown.enter.prevent="removeElement(option)" @mousedown.prevent="removeElement(option)" class="multiselect__tag-icon"></i>
-        </span>
+        <template v-if="multiple">
+          <span v-for="option in visibleValue" track-by="$index" onmousedown="event.preventDefault()" class="multiselect__tag">
+            {{ getOptionLabel(option) }}
+            <i aria-hidden="true" tabindex="1" @keydown.enter.prevent="removeElement(option)" @mousedown.prevent="removeElement(option)" class="multiselect__tag-icon"></i>
+          </span>
+        </template>
         <template v-if="value && value.length > limit">
           <strong>{{ limitText(value.length - limit) }}</strong>
         </template>
