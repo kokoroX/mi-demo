@@ -126,11 +126,16 @@ export default {
   watch: {
     selectedMonth (value) {
       const dayCount = getDaysInOneMonth(value.year, value.month)
+
       const list = Mock.mock({
         [`data|${dayCount}`]: [{
           [`list|${dayCount}`]: ['@integer(200, 5000)']
         }]
       })
+      if (dayCount <= 1) {
+        list.data.list = [list.data.list]
+        list.data = [list.data]
+      }
 
       this.lines.xAxis = [{
         type: 'category',
